@@ -1,0 +1,42 @@
+name: Deploy Admin (GitHub Pages)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-admin
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+
+      - name: Install Admin
+        run: npm --prefix admin ci
+
+      - name: Build Admin
+        run: npm --prefix admin run build
+
+      - name: Publish Admin to gh-pages /admin
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: admin/dist
+          destination_dir: admin
+          keep_files: true
