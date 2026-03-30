@@ -1,0 +1,20 @@
+{
+  "name": "medicohub",
+  "private": true,
+  "workspaces": [
+    "user",
+    "admin",
+    "backend"
+  ],
+  "scripts": {
+    "dev:user": "npm --prefix user run dev",
+    "build:user": "npm --prefix user run build",
+    "preview:user": "npm --prefix user run preview",
+    "dev:admin": "npm --prefix admin run dev",
+    "build:admin": "npm --prefix admin run build",
+    "preview:admin": "npm --prefix admin run preview",
+    "dev:backend": "npm --prefix backend run dev",
+    "build:backend": "npm --prefix backend run build",
+    "start:backend": "npm --prefix backend run start"
+  }
+}
