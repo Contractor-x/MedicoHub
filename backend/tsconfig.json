@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "target": "es2016",
+        "module": "commonjs",
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "typeRoots": [
+            "./types",
+            "./node_modules/@types"
+        ],
+        "baseUrl": ".",
+        "paths": {
+            "markdown-it": ["types/markdown-it"]
+        }
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}
