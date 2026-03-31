@@ -6,6 +6,12 @@
     "admin",
     "backend"
   ],
+  "overrides": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "@types/react": "18.2.79",
+    "@types/react-dom": "18.2.25"
+  },
   "scripts": {
     "dev:user": "npm --prefix user run dev",
     "build:user": "npm --prefix user run build",
