@@ -36,11 +36,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: admin/package-lock.json
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            admin/pnpm-lock.yaml
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
       - name: Install Admin
-        run: npm --prefix admin ci
+        run: pnpm --dir admin install --frozen-lockfile
 
       - name: Write Admin Env (Production)
         run: |
@@ -59,7 +66,7 @@ jobs:
           EOF
 
       - name: Build Admin
-        run: npm --prefix admin run build
+        run: pnpm --dir admin run build
 
       - name: Publish Admin to gh-pages /admin
         uses: peaceiris/actions-gh-pages@v4
