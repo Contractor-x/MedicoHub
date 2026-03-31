@@ -47,7 +47,7 @@ jobs:
             admin/pnpm-lock.yaml
 
       - name: Install Admin
-        run: pnpm --dir admin install --frozen-lockfile
+        run: pnpm --dir admin install --no-frozen-lockfile
 
       - name: Write Admin Env (Production)
         run: |

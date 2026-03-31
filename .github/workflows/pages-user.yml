@@ -47,7 +47,7 @@ jobs:
             user/pnpm-lock.yaml
 
       - name: Install User
-        run: pnpm --dir user install --frozen-lockfile
+        run: pnpm --dir user install --no-frozen-lockfile
 
       - name: Write User Env (Production)
         run: |
