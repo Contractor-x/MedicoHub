@@ -25,6 +25,7 @@ const allowedOrigins = [
     'https://admin.medicohub.com.ng',
     'https://medicohubwebsite.pages.dev',
     'https://medicohubadminsite.pages.dev',
+    'https://contractor-x.github.io',
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:3000',
