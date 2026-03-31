@@ -51,7 +51,7 @@ export const About: React.FC = () => {
                         <div className="group max-w-sm">
                             <div className="aspect-square rounded-3xl overflow-hidden mb-6 border-4 border-white/10 group-hover:border-brand-yellow transition-colors shadow-2xl relative bg-white/5">
                                 <img
-                                    src="/founder.jpg"
+                                    src="./founder.jpg"
                                     alt="Favour Ukpong U."
                                     className="w-full h-full object-cover transition-all duration-500 transform group-hover:scale-105"
                                 />
