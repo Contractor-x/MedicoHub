@@ -103,13 +103,13 @@ app.use((req, res, next) => {
 });
 
 // Health Check for Render/Monitoring
-app.get('/health', (req, res) => {
-    res.json({
-        status: 'online',
-        timestamp: new Date().toISOString(),
-        version: '3.0.5'
-    });
-});
+// app.get('/health', (req, res) => {
+//     res.json({
+//         status: 'online',
+//         timestamp: new Date().toISOString(),
+//         version: '3.0.5'
+//     });
+// });
 
 
 // Swagger Setup
