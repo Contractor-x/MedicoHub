@@ -2,7 +2,7 @@ import { auth } from '../firebase';
 
 // Robust URL Handling: Ensure we have the correct base for v1 and v3
 const getRootUrl = () => {
-    let url = 'https://medicohubwebsite-production.up.railway.app:5000';
+    let url = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://medicohubwebsite-production.up.railway.app';
 
     // 1. Force strings and trim
     url = String(url).trim();
