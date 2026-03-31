@@ -3,7 +3,7 @@ import { ResourceProgress } from '../types';
 
 // Robust URL Handling: Ensure we have the correct base for v1 and v3
 const getRootUrl = () => {
-    let url = 'https://medicohubwebsite-production.up.railway.app:5000';
+    let url = import.meta.env.VITE_API_URL || 'https://medicohubwebsite-production.up.railway.app';
     url = String(url).trim();
     while (url.endsWith('/') || url.endsWith('/api/v1') || url.endsWith('/api/v3') || url.endsWith('/api')) {
         url = url.replace(/\/$/, "").replace(/\/api\/v1$/, "").replace(/\/api\/v3$/, "").replace(/\/api$/, "");
