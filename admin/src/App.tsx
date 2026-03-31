@@ -22,7 +22,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!user || !isAdmin) {
-    return <Navigate to="/login" replace />;
+    return <Login />;
   }
 
   return <>{children}</>;
