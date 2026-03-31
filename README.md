@@ -1,4 +1,4 @@
-# MedicoHub Monorepo
+# MedicoHub Mono-repo
 
 Clean split into three sections:
 
