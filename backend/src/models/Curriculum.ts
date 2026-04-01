@@ -5,6 +5,7 @@ export interface ICurriculum extends Document {
     weeks: any[];
     targetYear?: string;
     activeCohortId?: string;
+    activeCohortObjId?: string;
     updatedAt: Date;
 }
 
@@ -13,6 +14,7 @@ const CurriculumSchema: Schema = new Schema({
     weeks: { type: Schema.Types.Mixed, default: [] },
     targetYear: { type: String },
     activeCohortId: { type: String },
+    activeCohortObjId: { type: String },
     updatedAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

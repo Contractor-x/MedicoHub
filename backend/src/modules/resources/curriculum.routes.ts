@@ -95,9 +95,17 @@ router.get('/', optionalAuth, async (req, res) => {
 router.post('/', verifyAdmin, async (req, res) => {
     try {
         const { weeks, targetYear, activeCohortId } = req.body;
+        let activeCohortObjId: string | undefined = undefined;
+
+        if (activeCohortId) {
+            const cohort = await Cohort.findOne({ uniqueId: activeCohortId });
+            if (cohort?._id) {
+                activeCohortObjId = String(cohort._id);
+            }
+        }
         const result = await Curriculum.findOneAndUpdate(
             { id: 'curriculum' },
-            { weeks, targetYear, activeCohortId, updatedAt: new Date() },
+            { weeks, targetYear, activeCohortId, activeCohortObjId, updatedAt: new Date() },
             { upsert: true, new: true }
         );
         res.json(result);
