@@ -146,6 +146,14 @@ export const api = {
             });
             return handleResponse(res);
         },
+        updateSubscription: async (uid: string, isSubscribed: boolean) => {
+            const res = await fetch(`${BASE_URL}/users/${uid}/subscription`, {
+                method: 'PATCH',
+                headers: await getAuthHeaders(),
+                body: JSON.stringify({ isPro: isSubscribed })
+            });
+            return handleResponse(res);
+        },
         delete: async (uid: string) => {
             const response = await fetch(`${BASE_URL}/users/${uid}`, {
                 method: 'DELETE',

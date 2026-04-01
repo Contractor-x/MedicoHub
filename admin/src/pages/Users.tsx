@@ -65,11 +65,19 @@ export const UsersPage = () => {
         if (!selectedUser) return;
         setIsSaving(true);
         try {
-            await api.users.update(selectedUser.uid || selectedUser._id, editForm);
+            const targetId = selectedUser.uid || selectedUser._id;
+            const subscriptionChanged = editForm.isSubscribed !== !!selectedUser.isSubscribed;
+
+            if (subscriptionChanged) {
+                await api.users.updateSubscription(targetId, editForm.isSubscribed);
+            }
+
+            const { isSubscribed, ...rest } = editForm;
+            await api.users.update(targetId, rest);
 
             // Optimistic update
             setUsers(prev => prev.map(u =>
-                (u.uid || u._id) === (selectedUser.uid || selectedUser._id) ? { ...u, ...editForm } : u
+                (u.uid || u._id) === targetId ? { ...u, ...editForm } : u
             ));
 
             setSelectedUser(null);

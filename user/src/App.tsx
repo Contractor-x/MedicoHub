@@ -466,7 +466,8 @@ const AppContent: React.FC = () => {
   const isOnboarded = (u: User | null) => {
     // A user is considered onboarded if they have a year set that isn't empty
     // We treat 'General' as the default/starting state that REQUIRES completion.
-    return !!u && !!u.year && u.year !== 'General' && u.year !== '';
+    const year = u?.year || u?.academicYear || '';
+    return !!u && !!year && year !== 'General';
   };
 
   return (
@@ -488,7 +489,7 @@ const AppContent: React.FC = () => {
           path={AppRoute.LOGIN}
           element={
             user ? (
-              !isOnboarded(user) ? <Navigate to={AppRoute.ONBOARDING} /> : <Navigate to={AppRoute.DASHBOARD} />
+              !isOnboarded(user) ? <Navigate to={AppRoute.ONBOARDING} /> : <Navigate to={AppRoute.PROFILE} />
             ) : <Login onLogin={noop} />
           }
         />
@@ -497,7 +498,7 @@ const AppContent: React.FC = () => {
           path={AppRoute.SIGNUP}
           element={
             user ? (
-              !isOnboarded(user) ? <Navigate to={AppRoute.ONBOARDING} /> : <Navigate to={AppRoute.DASHBOARD} />
+              !isOnboarded(user) ? <Navigate to={AppRoute.ONBOARDING} /> : <Navigate to={AppRoute.PROFILE} />
             ) : <Signup onSignup={noop} />
           }
         />
@@ -505,7 +506,7 @@ const AppContent: React.FC = () => {
         <Route
           path={AppRoute.FORGOT_PASSWORD}
           element={
-            user ? <Navigate to={AppRoute.DASHBOARD} /> : <ForgotPassword />
+            user ? <Navigate to={AppRoute.PROFILE} /> : <ForgotPassword />
           }
         />
 
