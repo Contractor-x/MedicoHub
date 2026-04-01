@@ -107,11 +107,21 @@ export const SettingsPage = () => {
         ]);
     };
 
+    const clampPercentage = (value: number) => {
+        if (Number.isNaN(value)) return 0;
+        return Math.min(100, Math.max(0, value));
+    };
+
     const handleSaveGeneral = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            await withTimeout(api.settings.update(config));
+            const sanitizedConfig = {
+                ...config,
+                proDiscountPercentage: clampPercentage(Number(config.proDiscountPercentage))
+            };
+            await withTimeout(api.settings.update(sanitizedConfig));
+            setConfig(sanitizedConfig);
             setMessage({ type: 'success', text: 'System settings updated successfully.' });
         } catch (error: any) {
             console.error("Save Error:", error);
@@ -338,7 +348,10 @@ export const SettingsPage = () => {
                                             min="0"
                                             max="100"
                                             value={config.proDiscountPercentage}
-                                            onChange={(e) => setConfig({ ...config, proDiscountPercentage: Number(e.target.value) })}
+                                            onChange={(e) => {
+                                                const next = clampPercentage(Number(e.target.value));
+                                                setConfig({ ...config, proDiscountPercentage: next });
+                                            }}
                                             className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-orange-500"
                                             placeholder="e.g. 10"
                                         />

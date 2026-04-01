@@ -179,9 +179,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {/* Stats Header */}
                 <div className="animate-fade-in-up">
                     <div className="mb-8 flex flex-col sm:flex-row justify-between sm:items-end gap-4">
-                        <div>
-                            <h1 className="text-3xl font-extrabold text-brand-dark">Dashboard</h1>
-                            <p className="text-gray-500 mt-1">Welcome back, {user.name.split(' ')[0]}. You're on a roll!</p>
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-brand-yellow text-brand-dark flex items-center justify-center font-extrabold overflow-hidden">
+                                {user.profileImage ? (
+                                    <img src={user.profileImage} alt={user.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    user.name.charAt(0)
+                                )}
+                            </div>
+                            <div>
+                                <h1 className="text-3xl font-extrabold text-brand-dark">Dashboard</h1>
+                                <p className="text-gray-500 mt-1">Welcome back, {user.name.split(' ')[0]}. You're on a roll!</p>
+                            </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
                             <a

@@ -227,8 +227,16 @@ export const UsersPage = () => {
                                     <tr key={user.uid || user._id} className="hover:bg-gray-50 transition-colors cursor-pointer group" onClick={() => handleEditClick(user)}>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-blue-50 text-brand-blue flex items-center justify-center font-bold text-sm uppercase shrink-0">
-                                                    {(user.name || user.email || 'U').charAt(0)}
+                                                <div className="w-10 h-10 rounded-full bg-blue-50 text-brand-blue flex items-center justify-center font-bold text-sm uppercase shrink-0 overflow-hidden">
+                                                    {user.profileImage || user.photoURL ? (
+                                                        <img
+                                                            src={user.profileImage || user.photoURL}
+                                                            alt={user.name || user.email || 'User'}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        (user.name || user.email || 'U').charAt(0)
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-2">
@@ -448,4 +456,3 @@ export const UsersPage = () => {
         </div >
     );
 };
-

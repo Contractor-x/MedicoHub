@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, BookOpen, DollarSign, Activity, Plus, TrendingUp, Calendar, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -49,6 +50,8 @@ const timeAgo = (dateStr: string) => {
 };
 
 export const Dashboard = () => {
+    const { user } = useAuth();
+    const displayName = user?.displayName || user?.email || 'Admin';
     const [stats, setStats] = useState({ users: 0, resources: 0, products: 0, revenue: 0 });
     const [recentUsers, setRecentUsers] = useState<any[]>([]);
     const [chartData, setChartData] = useState<any[]>([]);
@@ -100,7 +103,7 @@ export const Dashboard = () => {
             <div className="relative overflow-hidden bg-gradient-to-r from-brand-dark to-brand-blue rounded-[2rem] p-8 md:p-12 text-white shadow-2xl shadow-brand-blue/20 animate-fade-in-up">
                 <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                     <div>
-                        <h1 className="text-3xl md:text-4xl font-extrabold mb-3">Welcome back, Admin 👋</h1>
+                        <h1 className="text-3xl md:text-4xl font-extrabold mb-3">Welcome back, {displayName}</h1>
                         <p className="text-blue-100 max-w-xl text-lg font-medium opacity-90">
                             Here's what's happening today. You have {stats.users} students and {stats.resources} resources active. Platform revenue: {formatCurrency(stats.revenue)}
                         </p>

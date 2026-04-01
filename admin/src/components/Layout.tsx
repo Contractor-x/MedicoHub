@@ -1,11 +1,24 @@
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Outlet } from 'react-router-dom';
 import { Menu } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export const Layout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const { user } = useAuth();
+
+    const displayName = useMemo(() => {
+        return user?.displayName || user?.email || 'Admin';
+    }, [user]);
+
+    const initials = useMemo(() => {
+        if (!displayName) return 'A';
+        const parts = displayName.split(' ').filter(Boolean);
+        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+        return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+    }, [displayName]);
 
     return (
         <div className="min-h-screen bg-brand-light font-sans">
@@ -23,16 +36,20 @@ export const Layout = () => {
 
                         <div>
                             <h2 className="text-2xl md:text-3xl font-extrabold text-brand-dark tracking-tight leading-none">Dashboard</h2>
-                            <p className="text-gray-500 font-medium mt-1 text-xs md:text-sm">Welcome back, Admin</p>
+                            <p className="text-gray-500 font-medium mt-1 text-xs md:text-sm">Welcome back, {displayName}</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-3 bg-white p-1.5 pr-4 rounded-full border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                            <div className="w-8 h-8 md:w-10 md:h-10 bg-brand-dark text-brand-yellow rounded-full flex items-center justify-center font-bold text-sm md:text-lg">
-                                A
+                            <div className="w-8 h-8 md:w-10 md:h-10 bg-brand-dark text-brand-yellow rounded-full flex items-center justify-center font-bold text-sm md:text-lg overflow-hidden">
+                                {user?.photoURL ? (
+                                    <img src={user.photoURL} alt={displayName} className="w-full h-full object-cover" />
+                                ) : (
+                                    initials
+                                )}
                             </div>
-                            <span className="font-bold text-brand-dark text-xs md:text-sm hidden sm:block">Admin User</span>
+                            <span className="font-bold text-brand-dark text-xs md:text-sm hidden sm:block">{displayName}</span>
                         </div>
                     </div>
                 </header>
