@@ -29,9 +29,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
+  const basename = window.location.pathname.startsWith('/MedicoHub/admin') ? '/MedicoHub/admin' : '/';
   return (
     <AuthProvider>
-      <BrowserRouter basename="/MedicoHub/admin">
+      <BrowserRouter basename={basename}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={
