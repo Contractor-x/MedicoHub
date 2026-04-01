@@ -6,7 +6,7 @@ import { Save, Lock, Globe, Bell, Shield, User, AlertTriangle, Video, BookOpen, 
 import { updatePassword, updateProfile } from 'firebase/auth';
 
 export const SettingsPage = () => {
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
     const [activeTab, setActiveTab] = useState('general');
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -210,6 +210,7 @@ export const SettingsPage = () => {
             if (Object.keys(payload).length > 0) {
                 await updateProfile(user, payload);
             }
+            await refreshUser();
             if (passwordData.newPassword) {
                 if (passwordData.newPassword !== passwordData.confirmPassword) {
                     throw new Error("Passwords do not match");
