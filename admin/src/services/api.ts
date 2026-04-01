@@ -34,7 +34,8 @@ console.log("Root:", ROOT_URL);
 console.log("V1:", BASE_URL);
 console.log("V3:", V3_URL);
 
-if (ROOT_URL.includes('localhost') && window.location.hostname !== 'localhost') {
+const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+if (ROOT_URL.includes('localhost') && !isLocalHost) {
     console.warn("[Admin API] Possible Configuration Error: You are on a live site but VITE_API_URL is pointing to localhost!");
 }
 
