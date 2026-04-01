@@ -110,9 +110,11 @@ export const MCampUserDashboard: React.FC<MCampUserDashboardProps> = ({
   const [couponMessage, setCouponMessage] = React.useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   React.useEffect(() => {
+    let isActive = true;
     const fetchTargetYear = async () => {
       try {
         const curriculum = await api.curriculum.get();
+        if (!isActive) return;
         if (curriculum?.targetYear) {
           setTargetYear(curriculum.targetYear);
         }
@@ -127,6 +129,20 @@ export const MCampUserDashboard: React.FC<MCampUserDashboardProps> = ({
       }
     };
     fetchTargetYear();
+
+    const interval = window.setInterval(fetchTargetYear, 30000);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchTargetYear();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      isActive = false;
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 
   const BASE_PRICE = 30000;
