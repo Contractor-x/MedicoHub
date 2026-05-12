@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { AppRoute } from '../types';
 import { ArrowRight, Lock, Mail, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -9,7 +9,6 @@ interface LoginProps {
 }
 
 export const Login: React.FC<LoginProps> = () => {
-    const navigate = useNavigate();
     const { login, googleSignIn } = useAuth();
 
     const [email, setEmail] = React.useState('');
@@ -27,14 +26,7 @@ export const Login: React.FC<LoginProps> = () => {
             // App.tsx handles redirect via user state change
         } catch (err: any) {
             console.error(err);
-            // Map Firebase errors to user-friendly messages
-            if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-                setError('Invalid email or password.');
-            } else if (err.code === 'auth/too-many-requests') {
-                setError('Too many failed attempts. Please try again later.');
-            } else {
-                setError('Failed to sign in. Please try again.');
-            }
+            setError(err.message || 'Failed to sign in. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -43,12 +35,7 @@ export const Login: React.FC<LoginProps> = () => {
     const handleGoogleLogin = async () => {
         setError(null);
         try {
-            const isNewUser = await googleSignIn();
-            if (isNewUser) {
-                navigate(AppRoute.ONBOARDING);
-            } else {
-                navigate(AppRoute.DASHBOARD);
-            }
+            await googleSignIn();
         } catch (err: any) {
             console.error(err);
             setError('Failed to sign in with Google.');
