@@ -1,5 +1,6 @@
 
 export interface User {
+  uid?: string;
   name: string;
   firstName?: string;
   surname?: string;
@@ -35,6 +36,7 @@ export interface User {
     yearlyActivity: { month: string; hours: number }[]; // 12 months
   };
   emailVerified?: boolean;
+  authProvider?: 'email' | 'google';
 }
 
 export interface Notification {
