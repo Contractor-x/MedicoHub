@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, ShieldCheck, AlertCircle, CheckCircle } from 'lucide-react';
 
 export const Login = () => {
-    const { login, user, resetPassword } = useAuth();
+    const { login, user } = useAuth();
     const navigate = useNavigate();
     // Prefill credentials
     const [email, setEmail] = useState('');
@@ -13,7 +13,6 @@ export const Login = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isResetting, setIsResetting] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -30,28 +29,14 @@ export const Login = () => {
             await login(email, password);
         } catch (err: any) {
             console.error("Login failed:", err);
-            setError("Authentication failed. Please check your credentials.");
+            setError(err?.message || "Authentication failed. Please check your credentials.");
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleResetPassword = async () => {
-        if (!email) {
-            setError("Please enter your email address first.");
-            return;
-        }
-        setError('');
-        setSuccess('');
-        setIsResetting(true);
-        try {
-            await resetPassword(email);
-            setSuccess("Password reset link sent to your email!");
-        } catch (err: any) {
-            setError("Failed to send reset link. " + (err.message || ""));
-        } finally {
-            setIsResetting(false);
-        }
+        setError("Password resets are managed from the Settings page after you sign in.");
     };
 
     return (
@@ -101,10 +86,9 @@ export const Login = () => {
                             <button
                                 type="button"
                                 onClick={handleResetPassword}
-                                disabled={isResetting}
                                 className="text-xs font-bold text-brand-blue hover:underline disabled:opacity-50"
                             >
-                                {isResetting ? 'Sending...' : 'Forgot Password?'}
+                                Need Help?
                             </button>
                         </div>
                         <div className="relative">
