@@ -7,6 +7,7 @@ import swaggerJsDoc from 'swagger-jsdoc';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import connectDB from './config/database';
+import { authHandler } from './auth';
 
 dotenv.config();
 
@@ -165,6 +166,7 @@ import deliveryRoutes from './modules/delivery/delivery.routes';
 import orderRoutes from './modules/orders/order.routes';
 import cohortRoutes from './modules/cohort/cohort.routes';
 
+app.use('/auth', authHandler);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/curriculum', curriculumRoutes);
