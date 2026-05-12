@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Search, Shield, X, Check, FilePenLine, User, Crown, Phone, RotateCw, AlertCircle, Download, AlertTriangle } from 'lucide-react';
-// import { deleteField } from 'firebase/firestore'; // For removing requestedYear after approval
 import { api } from '../services/api';
 
 export const UsersPage = () => {
