@@ -78,7 +78,7 @@ const MainLayout: React.FC<{ user: User | null; children: React.ReactNode }> = (
 };
 
 const AppContent: React.FC = () => {
-  const { user: firebaseUser, loading, logout, deleteAccount } = useAuth();
+  const { user: sessionUser, loading, logout, deleteAccount } = useAuth();
   const { maintenanceMode } = useSettings();
   const [user, setUser] = React.useState<User | null>(null);
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
@@ -90,27 +90,21 @@ const AppContent: React.FC = () => {
     type: 'success'
   });
 
-  // Sync Firebase User with App User State
-  // Sync Firebase User with App User State (Real-time)
   React.useEffect(() => {
     let unsubscribe: (() => void) | undefined;
 
     const setupUserListener = async () => {
-      if (firebaseUser) {
+      if (sessionUser) {
         setAppLoading(true);
         try {
-          // Fetch from MongoDB via our API instead of Firestore Snapshot
-          const userData = await api.users.get(firebaseUser.uid);
+          const userData = await api.users.get(sessionUser.uid);
 
           if (userData) {
-            // Ensure year is mapped from academicYear if missing (for frontend compatibility)
-            // CRITICAL: Ensure 'name' is never undefined. Fallback to Firebase displayName if MongoDB name is missing.
-            const resolvedName = userData.name || firebaseUser.displayName || 'Student';
+            const resolvedName = userData.name || sessionUser.displayName || 'Student';
 
-            // SELF-HEALING: If MongoDB name was missing but we have it in Firebase, fix it in the DB now.
-            if (!userData.name && firebaseUser.displayName) {
+            if (!userData.name && sessionUser.displayName) {
               console.log("[App] Self-healing user name in MongoDB...");
-              api.users.update(firebaseUser.uid, { name: firebaseUser.displayName }).catch(e => console.error("Self-heal failed", e));
+              api.users.update(sessionUser.uid, { name: sessionUser.displayName }).catch(e => console.error("Self-heal failed", e));
             }
 
             const mappedUser: User = {
@@ -119,7 +113,7 @@ const AppContent: React.FC = () => {
               year: userData.year || userData.academicYear || '',
               academicYear: userData.academicYear || userData.year || '',
               profileImage: userData.photoURL || userData.profileImage || '',
-              emailVerified: firebaseUser.emailVerified
+              emailVerified: sessionUser.emailVerified
             };
 
             // RACE CONDITION PROTECTION:
@@ -150,9 +144,9 @@ const AppContent: React.FC = () => {
             setUser(prev => {
               if (prev && (prev.year || prev.academicYear)) return prev;
               return {
-                uid: firebaseUser.uid,
-                name: firebaseUser.displayName || 'Student',
-                email: firebaseUser.email || '',
+                uid: sessionUser.uid,
+                name: sessionUser.displayName || 'Student',
+                email: sessionUser.email || '',
                 isSubscribed: false,
                 year: '',
                 academicYear: ''
@@ -165,9 +159,9 @@ const AppContent: React.FC = () => {
           setUser(prev => {
             if (prev && (prev.year || prev.academicYear)) return prev;
             return {
-              uid: firebaseUser.uid,
-              name: firebaseUser.displayName || 'Student',
-              email: firebaseUser.email || '',
+              uid: sessionUser.uid,
+              name: sessionUser.displayName || 'Student',
+              email: sessionUser.email || '',
               isSubscribed: false,
               year: '',
               academicYear: ''
@@ -190,7 +184,7 @@ const AppContent: React.FC = () => {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [firebaseUser, loading]);
+  }, [sessionUser, loading]);
 
   // SUBSCRIPTION EXPIRATION CHECK: 
   // We check if the user's Pro account has exceeded 30 days (Monthly) or 365 days (Yearly).
@@ -208,7 +202,7 @@ const AppContent: React.FC = () => {
       if (diffInDays >= limit) {
         try {
           // Update MongoDB via API
-          await api.users.update(firebaseUser!.uid, {
+          await api.users.update(sessionUser!.uid, {
             isSubscribed: false,
             subscriptionPlan: null,
             subscriptionDate: null
@@ -231,12 +225,12 @@ const AppContent: React.FC = () => {
     };
 
     checkSubscriptionStatus();
-  }, [user, firebaseUser]);
+  }, [user, sessionUser]);
 
   // Check for email verification status and notify
   React.useEffect(() => {
-    if (firebaseUser?.emailVerified) {
-      const storageKey = `verified_notification_sent_${firebaseUser.uid}`;
+    if (sessionUser?.emailVerified) {
+      const storageKey = `verified_notification_sent_${sessionUser.uid}`;
       const alreadyNotified = localStorage.getItem(storageKey);
 
       if (!alreadyNotified) {
@@ -253,11 +247,11 @@ const AppContent: React.FC = () => {
         localStorage.setItem(storageKey, 'true');
       }
     }
-  }, [firebaseUser]);
+  }, [sessionUser]);
 
   // Fetch MongoDB Notifications
   React.useEffect(() => {
-    if (firebaseUser) {
+    if (sessionUser) {
       const fetchNotifications = async () => {
         try {
           const data = await api.notifications.get();
@@ -273,7 +267,7 @@ const AppContent: React.FC = () => {
       const interval = setInterval(fetchNotifications, 60000); // Poll every minute
       return () => clearInterval(interval);
     }
-  }, [firebaseUser]);
+  }, [sessionUser]);
 
 
   // Helper function
@@ -318,7 +312,7 @@ const AppContent: React.FC = () => {
 
 
   const handleUpdateUser = async (data: Partial<User>) => {
-    if (user && firebaseUser) {
+    if (user && sessionUser) {
       // Optimistic update - ensure year and academicYear are SYNCED
       const updatedUser = {
         ...user,
@@ -337,7 +331,7 @@ const AppContent: React.FC = () => {
           academicYear: data.academicYear || data.year
         };
         // Hit MongoDB Backend API
-        await api.users.update(firebaseUser.uid, payload);
+        await api.users.update(sessionUser.uid, payload);
       } catch (e) {
         console.error("Error updating user profile in MongoDB:", e);
       }
