@@ -1,10 +1,13 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IUser extends Document {
-    uid: string; // Firebase UID
+    uid: string;
     name: string;
     email: string;
     role: 'student' | 'admin';
+    passwordHash?: string;
+    emailVerified?: boolean;
+    authProvider?: 'email' | 'google';
     academicYear: 'Year 1' | 'Year 2' | 'Clinical' | 'Final Year' | 'General';
     requestedYear?: string;
     institution?: string;
@@ -70,6 +73,9 @@ const UserSchema: Schema = new Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     role: { type: String, enum: ['student', 'admin'], default: 'student' },
+    passwordHash: { type: String },
+    emailVerified: { type: Boolean, default: false },
+    authProvider: { type: String, enum: ['email', 'google'], default: 'email' },
     academicYear: { type: String, default: 'General' },
     requestedYear: { type: String },
     institution: { type: String },
