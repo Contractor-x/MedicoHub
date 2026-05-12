@@ -1,5 +1,3 @@
-import { auth } from '../firebase';
-
 // Robust URL Handling: Ensure we have the correct base for v1 and v3
 const getRootUrl = () => {
     let url = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://medicohubwebsite-production.up.railway.app';
@@ -39,10 +37,16 @@ if (ROOT_URL.includes('localhost') && !isLocalHost) {
     console.warn("[Admin API] Possible Configuration Error: You are on a live site but VITE_API_URL is pointing to localhost!");
 }
 
+const nativeFetch = window.fetch.bind(window);
+(window as any).fetch = ((input: RequestInfo | URL, init: RequestInit = {}) => {
+    return nativeFetch(input, {
+        credentials: 'include',
+        ...init
+    });
+}) as typeof window.fetch;
+
 const getAuthHeaders = async () => {
-    const token = await auth.currentUser?.getIdToken();
     return {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
     };
 };
@@ -63,6 +67,32 @@ const handleResponse = async (res: Response) => {
 };
 
 export const api = {
+    auth: {
+        getSession: async () => {
+            const res = await fetch(`${BASE_URL}/auth/session`);
+            if (!res.ok) {
+                return null;
+            }
+            const data = await res.json();
+            return data.user || null;
+        },
+        updateProfile: async (data: { displayName?: string; photoURL?: string }) => {
+            const res = await fetch(`${BASE_URL}/auth/me`, {
+                method: 'PATCH',
+                headers: await getAuthHeaders(),
+                body: JSON.stringify(data)
+            });
+            return handleResponse(res);
+        },
+        updatePassword: async (password: string) => {
+            const res = await fetch(`${BASE_URL}/auth/me/password`, {
+                method: 'PATCH',
+                headers: await getAuthHeaders(),
+                body: JSON.stringify({ password })
+            });
+            return handleResponse(res);
+        }
+    },
     resources: {
         getAll: async () => {
             try {
