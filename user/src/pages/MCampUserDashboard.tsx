@@ -77,11 +77,13 @@ export const MCampUserDashboard: React.FC<MCampUserDashboardProps> = ({
   onDeleteAccount
 }) => {
   const { mcampEnrollment } = useSettings();
-  // Check new V3 Schema property or fallback to legacy check
+  // Check new V3 Schema property or fallback to legacy check.
   const isEnrolled = user.mcamp?.isEnrolled || !!user.mcampId;
+  // Admin can grant direct Pro access without manual MCAMP enrollment flow.
+  const hasMcampAccess = isEnrolled || !!user.isSubscribed;
 
   const [view, setView] = React.useState<'landing' | 'payment_intro' | 'payment_method' | 'form' | 'dashboard'>(
-    isEnrolled ? 'dashboard' : 'landing'
+    hasMcampAccess ? 'dashboard' : 'landing'
   );
 
   // We'll use a static or backend-provided count later
@@ -152,6 +154,7 @@ export const MCampUserDashboard: React.FC<MCampUserDashboardProps> = ({
   // A user is only "Enrolled" in the ACTIVE context if their cohortId matches the Active Cohort ID
   // Legacy fallback: If activeCohortId is empty, trust the global isEnrolled flag
   const isActiveSessionEnrolled = React.useMemo(() => {
+    if (hasMcampAccess && !!user.isSubscribed) return true;
     if (!isEnrolled) return false;
     if (!activeCohortId) return isEnrolled;
 
@@ -161,7 +164,7 @@ export const MCampUserDashboard: React.FC<MCampUserDashboardProps> = ({
       user.mcamp?.cohortId === activeCohortId ||
       user.mcamp?.cohortId === activeCohortObjId ||
       isEnrolled;
-  }, [isEnrolled, user.mcamp?.uniqueId, user.mcamp?.cohortId, activeCohortId, activeCohortObjId]);
+  }, [hasMcampAccess, user.isSubscribed, isEnrolled, user.mcamp?.uniqueId, user.mcamp?.cohortId, activeCohortId, activeCohortObjId]);
 
 
 
@@ -198,6 +201,7 @@ export const MCampUserDashboard: React.FC<MCampUserDashboardProps> = ({
 
   // Restrict Dashboard access to active cohort only
   const isCorrectCohort = React.useMemo(() => {
+    if (!!user.isSubscribed) return true;
     if (!isEnrolled) return true;
 
     // If we have an active session, strictly check the Cohort ID
@@ -209,7 +213,7 @@ export const MCampUserDashboard: React.FC<MCampUserDashboardProps> = ({
     const userCohort = String(user.mcamp?.cohortYear || user.year || user.academicYear || '').toLowerCase();
     const targetY = String(targetYear || '').toLowerCase();
     return userCohort === targetY || userCohort.includes(targetY) || targetY.includes(userCohort);
-  }, [isEnrolled, user.mcamp?.cohortId, user.mcamp?.cohortYear, user.year, user.academicYear, targetYear, activeCohortId]);
+  }, [user.isSubscribed, isEnrolled, user.mcamp?.cohortId, user.mcamp?.cohortYear, user.year, user.academicYear, targetYear, activeCohortId]);
 
   // Override view based on session enrollment
   React.useEffect(() => {
