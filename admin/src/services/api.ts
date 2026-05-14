@@ -20,6 +20,13 @@ const getRootUrl = () => {
         url = url.replace('http:', 'https:');
     }
 
+    // Keep localhost/127 host family consistent with the current browser host.
+    if (window.location.hostname === '127.0.0.1' && url.includes('://localhost')) {
+        url = url.replace('://localhost', '://127.0.0.1');
+    } else if (window.location.hostname === 'localhost' && url.includes('://127.0.0.1')) {
+        url = url.replace('://127.0.0.1', '://localhost');
+    }
+
     return url;
 };
 
