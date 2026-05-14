@@ -7,9 +7,10 @@ import swaggerJsDoc from 'swagger-jsdoc';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import connectDB from './config/database';
-import { authHandler } from './auth';
 
 dotenv.config();
+
+import { authHandler } from './auth';
 
 // Connect to MongoDB Database
 connectDB();
@@ -33,7 +34,8 @@ const allowedOrigins = [
     'http://localhost:4173',
     'http://127.0.0.1:5173',
     'http://127.0.0.1:5174',
-    'http://127.0.0.1:3000'
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:8080',
 ];
 
 app.use(cors({
