@@ -91,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const googleSignIn = async () => {
         const callbackUrl = `${window.location.origin}/#/dashboard`;
-        window.location.href = api.auth.getGoogleSignInUrl(callbackUrl);
+        await api.auth.signInWithGoogle(callbackUrl);
     };
 
     const deleteAccount = async () => {
