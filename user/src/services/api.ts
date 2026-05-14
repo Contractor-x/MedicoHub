@@ -85,7 +85,29 @@ export const api = {
                 body
             });
         },
-        getGoogleSignInUrl: (callbackUrl: string) => `${ROOT_URL}/auth/signin/google?callbackUrl=${encodeURIComponent(callbackUrl)}`,
+        signInWithGoogle: async (callbackUrl: string) => {
+            const csrfRes = await fetch(`${ROOT_URL}/auth/csrf`);
+            const csrfJson = await csrfRes.json().catch(() => ({}));
+            const csrfToken = csrfJson.csrfToken || '';
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `${ROOT_URL}/auth/signin/google`;
+            form.style.display = 'none';
+
+            const csrfInput = document.createElement('input');
+            csrfInput.name = 'csrfToken';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+
+            const callbackInput = document.createElement('input');
+            callbackInput.name = 'callbackUrl';
+            callbackInput.value = callbackUrl;
+            form.appendChild(callbackInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        },
         sendVerification: async () => {
             const res = await fetch(`${V1_URL}/auth/send-verification`, {
                 method: 'POST'
