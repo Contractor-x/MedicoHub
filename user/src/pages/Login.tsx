@@ -146,9 +146,13 @@ export const Login: React.FC<LoginProps> = () => {
                 <div className="text-center mt-6">
                     <p className="text-gray-500 text-sm">
                         Don't have an account?{' '}
-                        <Link to={AppRoute.ONBOARDING} className="font-bold text-brand-blue hover:text-blue-600">
+                        <button
+                            type="button"
+                            onClick={handleGoogleLogin}
+                            className="font-bold text-brand-blue hover:text-blue-600"
+                        >
                             Create one now
-                        </Link>
+                        </button>
                     </p>
                 </div>
             </div>
