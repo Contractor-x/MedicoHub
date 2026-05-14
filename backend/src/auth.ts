@@ -63,9 +63,6 @@ export const authConfig = {
     secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret',
     trustHost: true,
     session: { strategy: 'jwt' as const },
-    pages: {
-        signIn: '/login'
-    },
     providers: [
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID || '',
