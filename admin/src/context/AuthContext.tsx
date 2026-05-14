@@ -36,13 +36,22 @@ const getRootUrl = () => {
     if (window.location.protocol === 'https:' && url.startsWith('http:')) {
         url = url.replace('http:', 'https:');
     }
+
+    // Keep localhost/127 host family consistent with the current browser host to avoid CSRF cookie mismatches.
+    if (window.location.hostname === '127.0.0.1' && url.includes('://localhost')) {
+        url = url.replace('://localhost', '://127.0.0.1');
+    } else if (window.location.hostname === 'localhost' && url.includes('://127.0.0.1')) {
+        url = url.replace('://127.0.0.1', '://localhost');
+    }
     return url;
 };
 
 const ROOT_URL = getRootUrl();
 
 const getCsrfToken = async () => {
-    const response = await fetch(`${ROOT_URL}/auth/csrf`);
+    const response = await fetch(`${ROOT_URL}/auth/csrf`, {
+        credentials: 'include'
+    });
     const data = await response.json();
     return data?.csrfToken as string | undefined;
 };
@@ -55,14 +64,17 @@ const signInWithCredentials = async (email: string, password: string) => {
 
     const body = new URLSearchParams({
         csrfToken,
+        app: 'admin',
         email,
         password,
-        redirectTo: '/',
+        redirect: 'false',
+        callbackUrl: `${window.location.origin}/`,
         json: 'true'
     });
 
-    const response = await fetch(`${ROOT_URL}/auth/callback/credentials`, {
+    const response = await fetch(`${ROOT_URL}/auth/callback/credentials?json=true`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
         },
@@ -81,12 +93,13 @@ const signOutWithAuthJs = async () => {
 
     const body = new URLSearchParams({
         csrfToken,
-        redirectTo: '/login',
+        callbackUrl: `${window.location.origin}/login`,
         json: 'true'
     });
 
     await fetch(`${ROOT_URL}/auth/signout`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
         },
