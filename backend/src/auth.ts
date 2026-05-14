@@ -7,7 +7,7 @@ import { hashPassword, verifyPassword } from './utils/password';
 
 const bootstrapAdminEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
 const bootstrapAdminPassword = process.env.ADMIN_PASSWORD || '';
-const frontendUrl = process.env.FRONTEND_URL || 'https://medicohub.com.ng';
+const frontendUrl = (process.env.FRONTEND_URL || 'https://medicohub.com.ng').replace(/\/+$/, '');
 
 const normalizeEmail = (value: string) => value.trim().toLowerCase();
 
@@ -63,6 +63,10 @@ export const authConfig = {
     secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret',
     trustHost: true,
     session: { strategy: 'jwt' as const },
+    pages: {
+        signIn: '/login',
+        error: '/login'
+    },
     providers: [
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID || '',
