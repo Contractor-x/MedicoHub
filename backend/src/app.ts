@@ -32,6 +32,7 @@ const allowedOrigins = [
     'http://localhost:5174',
     'http://localhost:3000',
     'http://localhost:4173',
+    'http://localhost:8080',
     'http://127.0.0.1:5173',
     'http://127.0.0.1:5174',
     'http://127.0.0.1:3000',
@@ -150,6 +151,12 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 // Basic Route
 app.get('/', (req: Request, res: Response) => {
     res.send('Medico V3 Backend is Running');
+});
+
+app.get('/login', (req: Request, res: Response) => {
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:8080').replace(/\/+$/, '');
+    const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+    return res.redirect(`${frontendUrl}/#/login${query}`);
 });
 
 // 4. API Routes
