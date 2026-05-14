@@ -457,12 +457,12 @@ const AppContent: React.FC = () => {
     onDeleteAccount: handleDeleteAccount
   };
 
-  const isOnboarded = (u: User | null) => {
+  function isOnboarded(u: User | null) {
     // A user is considered onboarded if they have a year set that isn't empty
     // We treat 'General' as the default/starting state that REQUIRES completion.
     const year = u?.year || u?.academicYear || '';
     return !!u && !!year && year !== 'General';
-  };
+  }
 
   return (
     <MainLayout user={user}>
