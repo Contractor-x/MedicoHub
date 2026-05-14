@@ -35,7 +35,7 @@ export const MCampDashboard: React.FC<MCampDashboardProps> = ({
     const [progress, setProgress] = React.useState(0);
     const [localUser, setLocalUser] = React.useState(user);
 
-    if (!user.mcamp?.isEnrolled) {
+    if (!user.mcamp?.isEnrolled && !user.isSubscribed) {
         return (
             <DashboardLayout
                 user={user}
