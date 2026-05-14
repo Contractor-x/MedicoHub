@@ -131,13 +131,29 @@ router.patch('/:uid/subscription', verifyAuth, verifyAdmin, async (req: Request,
     const { isPro } = req.body;
 
     try {
-        const user = await User.findOneAndUpdate({ uid }, { isSubscribed: isPro }, { new: true });
+        const updatePayload: Record<string, any> = {
+            isSubscribed: !!isPro
+        };
+
+        if (isPro) {
+            updatePayload.subscriptionDate = new Date();
+            updatePayload.subscriptionPlan = 'admin_override';
+        } else {
+            updatePayload.subscriptionDate = null;
+            updatePayload.subscriptionPlan = null;
+        }
+
+        const user = await User.findOneAndUpdate({ uid }, updatePayload, { new: true });
 
         if (user) {
             EmailService.sendSubscriptionStatusEmail(user, isPro).catch(console.error);
         }
 
-        res.json({ success: true, message: `User subscription ${isPro ? 'activated' : 'deactivated'}` });
+        res.json({
+            success: true,
+            message: `User subscription ${isPro ? 'activated' : 'deactivated'}`,
+            user
+        });
     } catch (error) {
         console.error("Error updating subscription:", error);
         res.status(500).json({ error: "Failed to update subscription" });
