@@ -110,6 +110,22 @@ export const authConfig = {
         })
     ],
     callbacks: {
+        async redirect({ url, baseUrl }: any) {
+            if (typeof url === 'string' && url.startsWith(frontendUrl)) {
+                return url;
+            }
+            if (typeof url === 'string' && url.startsWith('/')) {
+                return `${frontendUrl}${url}`;
+            }
+            if (typeof url === 'string' && url.startsWith(baseUrl)) {
+                const path = url.slice(baseUrl.length);
+                if (!path || path === '/') {
+                    return `${frontendUrl}/#/dashboard`;
+                }
+                return `${frontendUrl}${path}`;
+            }
+            return `${frontendUrl}/#/dashboard`;
+        },
         async signIn({ account, profile, user }: any) {
             if (account?.provider === 'google') {
                 const dbUser = await ensureUserForGoogle(profile || user);
