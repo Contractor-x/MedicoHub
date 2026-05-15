@@ -243,9 +243,6 @@ export const MCampUserDashboard: React.FC<MCampUserDashboardProps> = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
   }, []);
 
   const [appliedCouponId, setAppliedCouponId] = React.useState<string | null>(null);
