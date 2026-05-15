@@ -90,23 +90,29 @@ export const api = {
             const csrfJson = await csrfRes.json().catch(() => ({}));
             const csrfToken = csrfJson.csrfToken || '';
 
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `${ROOT_URL}/auth/signin/google`;
-            form.style.display = 'none';
+            const res = await fetch(`${ROOT_URL}/auth/signin/google`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Auth-Return-Redirect': 'true'
+                },
+                body: new URLSearchParams({
+                    csrfToken,
+                    callbackUrl
+                })
+            });
 
-            const csrfInput = document.createElement('input');
-            csrfInput.name = 'csrfToken';
-            csrfInput.value = csrfToken;
-            form.appendChild(csrfInput);
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({ message: 'Google sign-in failed' }));
+                throw new Error(err.message || 'Failed to sign in with Google');
+            }
 
-            const callbackInput = document.createElement('input');
-            callbackInput.name = 'callbackUrl';
-            callbackInput.value = callbackUrl;
-            form.appendChild(callbackInput);
-
-            document.body.appendChild(form);
-            form.submit();
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error('No redirect URL received from server');
+            }
         },
         sendVerification: async () => {
             const res = await fetch(`${V1_URL}/auth/send-verification`, {
