@@ -23,7 +23,7 @@ export const verifyAuth = async (req: Request, res: Response, next: NextFunction
     try {
         const authjsToken = await getToken({
             req: req as any,
-            secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret'
+            secret: process.env.AUTH_SECRET || process.env.BETTER_AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret'
         });
 
         if (authjsToken) {
@@ -51,7 +51,7 @@ export const verifyAdmin = async (req: Request, res: Response, next: NextFunctio
         try {
             const authjsToken = await getToken({
                 req: req as any,
-                secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret'
+                secret: process.env.AUTH_SECRET || process.env.BETTER_AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret'
             });
 
             if (!authjsToken) {
@@ -80,7 +80,7 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
     try {
         const authjsToken = await getToken({
             req: req as any,
-            secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret'
+                secret: process.env.AUTH_SECRET || process.env.BETTER_AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret'
         });
 
         if (authjsToken) {
