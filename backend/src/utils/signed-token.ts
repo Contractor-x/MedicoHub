@@ -18,7 +18,7 @@ const base64UrlDecode = (value: string) => {
     return Buffer.from(padded, 'base64').toString('utf8');
 };
 
-const getSecret = () => process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret';
+const getSecret = () => process.env.AUTH_SECRET || process.env.BETTER_AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret';
 
 export const signToken = (payload: Omit<TokenPayload, 'iat' | 'nonce'>, ttlSeconds: number) => {
     const now = Math.floor(Date.now() / 1000);
