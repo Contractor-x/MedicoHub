@@ -60,7 +60,7 @@ const ensureUserForGoogle = async (profile: any) => {
 };
 
 export const authConfig = {
-    secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret',
+    secret: process.env.AUTH_SECRET || process.env.BETTER_AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret',
     trustHost: true,
     session: { strategy: 'jwt' as const },
     pages: {
@@ -70,7 +70,18 @@ export const authConfig = {
     providers: [
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID || '',
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+            authorization: {
+                url: 'https://accounts.google.com/o/oauth2/v2/auth',
+                params: {
+                    scope: 'openid profile email',
+                    prompt: 'consent',
+                    access_type: 'offline',
+                    response_type: 'code'
+                }
+            },
+            token: 'https://oauth2.googleapis.com/token',
+            userinfo: 'https://www.googleapis.com/oauth2/v3/userinfo'
         }),
         Credentials({
             name: 'Email Password',
