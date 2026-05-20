@@ -12,9 +12,9 @@ Three apps in one repo: user frontend, admin frontend, and backend API.
 
 ## What Lives Where
 
-- `user` - User-facing web app
-- `admin` - Admin web app
-- `backend` - Express API server
+- `user` - User-facing web app.
+- `admin` - Admin web app.
+- `backend` - Express API server.
 
 ## Auth Setup
 
