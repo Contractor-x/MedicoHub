@@ -1,60 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { applyActionCode, getAuth } from 'firebase/auth';
+import { useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle, XCircle, ArrowRight, Loader2, LogIn } from 'lucide-react';
 import { AppRoute } from '../types';
+import { api } from '../services/api';
 
 export const VerifyEmail: React.FC = () => {
     const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-    const auth = getAuth(); // Or use useAuth context if exposed
 
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
     const [message, setMessage] = useState('Verifying your email address...');
 
     useEffect(() => {
-        const mode = searchParams.get('mode');
-        const oobCode = searchParams.get('oobCode');
-
-        if (mode === 'verifyEmail' && oobCode) {
-            handleVerification(oobCode);
+        const token = searchParams.get('token');
+        if (token) {
+            handleVerification(token);
         } else {
             setStatus('error');
             setMessage('Invalid verification link. Please request a new one.');
         }
     }, [searchParams]);
 
-    const handleVerification = async (oobCode: string) => {
+    const handleVerification = async (token: string) => {
         try {
-            await applyActionCode(auth, oobCode);
+            await api.auth.verifyEmail(token);
             setStatus('success');
             setMessage('Your email has been successfully verified! You can now access all features.');
         } catch (error: any) {
             console.error('Verification error:', error);
             setStatus('error');
-            setMessage(getErrorText(error.code));
-        }
-    };
-
-    const getErrorText = (errorCode: string) => {
-        switch (errorCode) {
-            case 'auth/expired-action-code':
-                return 'This verification link has expired. Please request a new one.';
-            case 'auth/invalid-action-code':
-                return 'This verification link is invalid. It may have already been used.';
-            case 'auth/user-disabled':
-                return 'This user account has been disabled.';
-            case 'auth/user-not-found':
-                return 'User not found.';
-            default:
-                return 'An error occurred during verification. Please try again.';
+            setMessage(error.message || 'An error occurred during verification. Please try again.');
         }
     };
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
             <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 border border-gray-100 text-center animate-fade-in-up">
-
                 {status === 'loading' && (
                     <div className="flex flex-col items-center gap-4 py-8">
                         <Loader2 size={48} className="text-brand-yellow animate-spin" />
@@ -104,10 +84,8 @@ export const VerifyEmail: React.FC = () => {
                         </Link>
                     </div>
                 )}
-
             </div>
 
-            {/* Simple Footer/Branding */}
             <div className="mt-8 text-gray-400 text-sm font-medium">
                 © {new Date().getFullYear()} Medico Hub
             </div>

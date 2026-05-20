@@ -44,13 +44,7 @@ export const Signup: React.FC<SignupProps> = () => {
             handleSuccess();
         } catch (err: any) {
             console.error(err);
-            if (err.code === 'auth/email-already-in-use') {
-                setError('Email is already associated with another account.');
-            } else if (err.code === 'auth/weak-password') {
-                setError('Password should be at least 6 characters.');
-            } else {
-                setError('Failed to create account. Please try again.');
-            }
+            setError(err.message || 'Failed to create account. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -60,7 +54,6 @@ export const Signup: React.FC<SignupProps> = () => {
         setError(null);
         try {
             await googleSignIn();
-            handleSuccess();
         } catch (err: any) {
             console.error(err);
             setError('Failed to sign up with Google.');

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { auth } from '../config/firebase';
+import { getToken } from '@auth/core/jwt';
 
 // Extend Express Request to include user
 declare global {
@@ -20,23 +20,20 @@ declare global {
  * Checks if the user is actually logged in.
  */
 export const verifyAuth = async (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.headers.authorization;
-
-    // Every request from the frontend should have a "Ticket" (Token)
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Unauthorized: No token provided' });
-    }
-
-    const token = authHeader.split(' ')[1];
-
     try {
-        // We ask Firebase: "Is this ticket real and valid?"
-        const decodedToken = await auth.verifyIdToken(token);
-        req.user = decodedToken; // Save the user info so other parts of the code can use it
-        next(); // User is allowed in, move to the next step
+        const authjsToken = await getToken({
+            req: req as any,
+            secret: process.env.AUTH_SECRET || process.env.BETTER_AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret'
+        });
+
+        if (authjsToken) {
+            req.user = authjsToken;
+            return next();
+        }
+        return res.status(401).json({ error: 'Unauthorized: No active session found' });
     } catch (error) {
         console.error("Auth Error:", error);
-        return res.status(403).json({ error: 'Unauthorized: Invalid token' });
+        return res.status(403).json({ error: 'Unauthorized: Invalid session' });
     }
 };
 
@@ -51,23 +48,23 @@ export const verifyAdmin = async (req: Request, res: Response, next: NextFunctio
     }
 
     if (!req.user) {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ error: 'Unauthorized: No token provided' });
-        }
-
-        const token = authHeader.split(' ')[1];
         try {
-            const decodedToken = await auth.verifyIdToken(token);
-            req.user = decodedToken;
+            const authjsToken = await getToken({
+                req: req as any,
+                secret: process.env.AUTH_SECRET || process.env.BETTER_AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret'
+            });
+
+            if (!authjsToken) {
+                return res.status(401).json({ error: 'Unauthorized: No active session found' });
+            }
+            req.user = authjsToken;
         } catch (error) {
             console.error("verifyAdmin Auth Error:", error);
-            return res.status(403).json({ error: 'Unauthorized: Invalid token' });
+            return res.status(403).json({ error: 'Unauthorized: Invalid session' });
         }
     }
 
-    // We check the "Admin" tag that we put on their Firebase account
-    if (req.user.admin === true) {
+    if (req.user.admin === true || req.user.role === 'admin') {
         next(); // They are an admin, let them through
     } else {
         return res.status(403).json({ error: 'Forbidden: Admin access required' });
@@ -80,19 +77,18 @@ export const verifyAdmin = async (req: Request, res: Response, next: NextFunctio
  * Use this for guest checkouts or public pages that can show personalized info.
  */
 export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return next();
-    }
-
-    const token = authHeader.split(' ')[1];
     try {
-        const decodedToken = await auth.verifyIdToken(token);
-        req.user = decodedToken;
+        const authjsToken = await getToken({
+            req: req as any,
+                secret: process.env.AUTH_SECRET || process.env.BETTER_AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'medicohub-dev-auth-secret'
+        });
+
+        if (authjsToken) {
+            req.user = authjsToken;
+        }
     } catch (error) {
         // We ignore errors here because authentication is optional
         console.warn("Optional Auth failed, continuing as guest.");
     }
     next();
 };
-

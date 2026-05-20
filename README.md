@@ -1,190 +1,215 @@
 <div align="center">
 
-# MedicoHub 
+# MedicoHub
 
 [![Node](https://img.shields.io/badge/node-20%2B-3c873a?style=flat-square)](https://nodejs.org)
 [![Vite](https://img.shields.io/badge/vite-7-646cff?style=flat-square)](https://vitejs.dev)
 [![Express](https://img.shields.io/badge/express-4-000000?style=flat-square)](https://expressjs.com)
 
-One repository, three apps: user frontend, admin frontend, backend API.
+Three apps in one repo: user frontend, admin frontend, and backend API.
 
 </div>
 
-## What This Repo Contains
+## What Lives Where
 
-- `user` — User-facing web app (Vite + React)
-- `admin` — Admin web app (Vite + React)
-- `backend` — API server (Express + TypeScript)
+- `user` - User-facing web app
+- `admin` - Admin web app
+- `backend` - Express API server
 
-## Architecture
+## Auth Setup
 
-```text
-Browser
-  ├─ User App (Vite + React)  ───────────────┐
-  ├─ Admin App (Vite + React) ───────────┐   │
-  │                                      │   │
-  │   GitHub Pages (static hosting)      │   │
-  │                                      │   │
-  └──────────────────────────────────────┘   │
-                                             │
-                         API requests        │
-                                             ▼
-                    Backend (Express + TS)
-                              │
-                              ▼
-                  MongoDB, Firebase, ImageKit
-```
+Auth is now handled by `Auth.js` in the backend. Firebase auth is no longer used in source code.
 
-<div align="center">
+The backend owns:
 
-If you are new to monorepos, read this: each folder is its own app.
-You run them separately, and they talk to the backend over HTTP.
+- Google sign-in
+- Email/password sign-in
+- JWT session cookies
+- Email verification links
+- Password reset links
 
-</div>
+The frontends just talk to the backend over HTTP and use cookies for sessions.
 
 ## Requirements
 
 - Node.js 20+
 - pnpm 9+
+- MongoDB
+- Google OAuth client credentials
+- An email provider for verification and password reset mail
 
 ## Install
 
+Run installs separately in each app folder:
+
 ```bash
+pnpm --dir backend install
 pnpm --dir user install
 pnpm --dir admin install
-pnpm --dir backend install
 ```
+
+If you are setting this up after the Auth.js migration, make sure the backend install includes:
+
+```bash
+pnpm --dir backend add @auth/core @auth/express
+```
+
+## Environment Files
+
+Create these files:
+
+- `backend/.env`
+- `user/.env`
+- `admin/.env`
+
+Example templates are included at:
+
+- `backend/.env.example`
+- `user/.env.example`
+- `admin/.env.example`
+
+### `backend/.env`
+
+Use this for Auth.js, MongoDB, Google OAuth, and email delivery.
+
+```env
+NODE_ENV=development
+PORT=5000
+API_URL=http://localhost:5000
+MONGODB_URI=your-mongodb-connection-string
+MAX_UPLOAD_SIZE_MB=25
+
+BETTER_AUTH_SECRET=replace-with-a-long-random-secret
+
+GOOGLE_CLIENT_ID=your-google-oauth-client-id
+GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
+
+FRONTEND_URL=http://localhost:3000
+ADMIN_FRONTEND_URL=http://localhost:5173
+
+EMAIL_PROVIDER=resend
+RESEND_API_KEY=your-resend-api-key
+EMAIL_FROM=MedicoHub <no-reply@your-domain.com>
+
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=strong-admin-password
+ADMIN_SECRET=optional-admin-bypass-secret
+
+PAYSTACK_SECRET_KEY=your-paystack-secret-key
+IMAGEKIT_PUBLIC_KEY=your-imagekit-public-key
+IMAGEKIT_PRIVATE_KEY=your-imagekit-private-key
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your-imagekit-id
+```
+
+### `user/.env`
+
+```env
+VITE_API_URL=http://localhost:5000
+VITE_GROQ_API_KEY=your-groq-api-key
+VITE_PAYSTACK_PUBLIC_KEY=your-paystack-public-key
+```
+
+### `admin/.env`
+
+```env
+VITE_API_URL=http://localhost:5000
+VITE_API_BASE_URL=http://localhost:5000
+```
+
+If you deploy to production, update the URLs to your live domains.
 
 ## Run Locally
 
+Use three terminals, one for each app:
+
 ```bash
+pnpm --dir backend run dev
 pnpm --dir user run dev
 pnpm --dir admin run dev
-pnpm --dir backend run dev
 ```
 
-- User app runs on `http://localhost:3000`
-- Admin app runs on `http://localhost:5173`
-- Backend runs on `http://localhost:5000`
+Default local ports:
 
-Backend health check:
-
-```bash
-curl http://localhost:5000/health
-```
+- Backend: `http://localhost:5000`
+- User app: `http://localhost:3000`
+- Admin app: `http://localhost:5173`
 
 ## Build
 
 ```bash
+pnpm --dir backend run build
 pnpm --dir user run build
 pnpm --dir admin run build
-pnpm --dir backend run build
 ```
 
-## Deployment
+## Production Launch
 
-### Backend (Railway)
+### Backend
+
+Build the server, then start the compiled app:
 
 ```bash
 pnpm --dir backend run build
 pnpm --dir backend run start
 ```
 
-### User (GitHub Pages)
+### User App
+
+Build the Vite app and deploy the `dist` output to your static host:
 
 ```bash
 pnpm --dir user run build
 ```
 
-### Admin (GitHub Pages)
+### Admin App
+
+Build the Vite app and deploy the `dist` output to your static host:
 
 ```bash
 pnpm --dir admin run build
 ```
 
-## Environment
+## How Auth Works
 
-Both frontends use Vite env variables (prefix `VITE_`). Create these in:
+- Login and signup go through the backend.
+- Google sign-in redirects through Auth.js and stores a session cookie.
+- The cookie is HTTP-only, so the browser keeps the session without storing tokens in localStorage.
+- Password reset and email verification are handled by backend routes that send links with signed tokens.
 
-- `user/.env`
-- `admin/.env`
+## Common Setup Notes
 
-Common variables:
+- Put the backend `.env` in `backend/.env`.
+- Put the user app `.env` in `user/.env`.
+- Put the admin app `.env` in `admin/.env`.
+- Restart the dev server after changing any `.env` file.
+- Keep `AUTH_SECRET` and `NEXTAUTH_SECRET` identical.
+- Set your Google OAuth redirect URL to the backend Auth.js callback path for your deployment domain.
 
-```
-VITE_API_URL=...
-VITE_API_BASE_URL=...
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_STORAGE_BUCKET=...
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
-VITE_FIREBASE_MEASUREMENT_ID=...
-VITE_GROQ_API_KEY=...
-VITE_PAYSTACK_PUBLIC_KEY=...
-VITE_ENABLE_DEMO_BYPASS=true
-```
+## Troubleshooting
 
-## Common Errors and Fixes
+### Session does not persist
 
-### Firebase: Error (auth/invalid-api-key)
+- Check that the backend and frontend URLs match your local or deployed domain.
+- Make sure the browser is accepting cookies.
+- Confirm `AUTH_SECRET` is set and unchanged between restarts.
 
-Cause: The app did not load your `.env` or the key is wrong.
+### Google login fails
 
-Fix:
+- Verify `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+- Make sure your Google OAuth app allows the correct callback URL.
 
-- Confirm the file is `user/.env` or `admin/.env`
-- Restart the dev server after changing envs
-- Verify the Firebase key from Firebase Console
+### Password reset or verification email does not arrive
 
-### Blank page with no UI
+- Check `RESEND_API_KEY` and `EMAIL_FROM`.
+- Confirm your backend email service is configured for the provider you selected.
 
-Cause: React crashed before rendering.
+### App loads but API calls fail
 
-Fix:
-
-- Open DevTools Console and look for errors
-- Common culprit is multiple React versions
-- Run a clean install with pnpm and check `pnpm list react`
-
-### No routes matched location `/MedicoHub/admin/`
-
-Cause: Admin routing without the correct base.
-
-Fix:
-
-- Admin uses `BrowserRouter` with `basename="/MedicoHub/admin"`
-- Rebuild and redeploy admin
-
-### GitHub Pages shows README instead of the app
-
-Cause: Pages is serving `main` branch, not `gh-pages`.
-
-Fix:
-
-- Settings → Pages → Source → Deploy from a branch
-- Branch: `gh-pages`
-- Folder: `/ (root)`
-
-### GitHub Pages shows MIME type error for `/src/index.tsx`
-
-Cause: Pages is serving source files, not the build output.
-
-Fix:
-
-- Serve the `gh-pages` branch as above
-- Ensure the workflow publishes `user/dist` to `gh-pages` root
-
-## Debugging Tips
-
-- Always check the browser Console first
-- Check the Network tab for failed API calls
-- Verify the backend is reachable: `curl http://localhost:5000/health`
-- Verify the API base URL in the console logs
-- If something changes, restart the dev server
+- Confirm `VITE_API_URL` points to the backend.
+- Make sure the backend is running before opening the frontends.
 
 ## Notes
 
-- This repo is structured as a monorepo, but each app runs independently.
-- When in doubt, run each app in its own terminal window.
+- This repo is a monorepo, but each app is run independently.
+- The backend now owns authentication state.
+- Firebase auth has been removed from the codebase.

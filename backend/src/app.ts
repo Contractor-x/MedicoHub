@@ -10,6 +10,8 @@ import connectDB from './config/database';
 
 dotenv.config();
 
+import { authHandler } from './auth';
+
 // Connect to MongoDB Database
 connectDB();
 
@@ -30,9 +32,11 @@ const allowedOrigins = [
     'http://localhost:5174',
     'http://localhost:3000',
     'http://localhost:4173',
+    'http://localhost:8080',
     'http://127.0.0.1:5173',
     'http://127.0.0.1:5174',
-    'http://127.0.0.1:3000'
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:8080',
 ];
 
 app.use(cors({
@@ -61,7 +65,7 @@ app.use(cors({
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-secret']
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-secret', 'x-auth-return-redirect']
 }));
 
 // 5. Handle Preflight Requests Explicitly
@@ -149,6 +153,12 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Medico V3 Backend is Running');
 });
 
+app.get('/login', (req: Request, res: Response) => {
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:8080').replace(/\/+$/, '');
+    const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+    return res.redirect(`${frontendUrl}/#/login${query}`);
+});
+
 // 4. API Routes
 import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/user/user.routes';
@@ -165,6 +175,7 @@ import deliveryRoutes from './modules/delivery/delivery.routes';
 import orderRoutes from './modules/orders/order.routes';
 import cohortRoutes from './modules/cohort/cohort.routes';
 
+app.use('/auth', authHandler);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/curriculum', curriculumRoutes);

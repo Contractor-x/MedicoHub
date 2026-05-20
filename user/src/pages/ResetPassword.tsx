@@ -1,100 +1,66 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { verifyPasswordResetCode, confirmPasswordReset, getAuth } from 'firebase/auth';
+import { useSearchParams, Link } from 'react-router-dom';
 import { KeyRound, CheckCircle, XCircle, ArrowRight, Loader2, Eye, EyeOff, Lock } from 'lucide-react';
 import { AppRoute } from '../types';
+import { api } from '../services/api';
 
 export const ResetPassword: React.FC = () => {
     const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-    const auth = getAuth();
 
     const [status, setStatus] = useState<'verifying' | 'valid' | 'success' | 'error'>('verifying');
     const [message, setMessage] = useState('Verifying reset link...');
-    const [email, setEmail] = useState(''); // Email associated with the reset code
+    const [token, setToken] = useState('');
 
-    // Form State
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const oobCode = searchParams.get('oobCode');
+    const [formError, setFormError] = useState<string | null>(null);
 
     useEffect(() => {
-        const mode = searchParams.get('mode');
-
-        if (mode === 'resetPassword' && oobCode) {
-            handleVerifyCode(oobCode);
+        const incomingToken = searchParams.get('token');
+        if (incomingToken) {
+            setToken(incomingToken);
+            setStatus('valid');
+            setMessage('Create a new password for your account.');
         } else {
             setStatus('error');
             setMessage('Invalid password reset link. Please request a new one.');
         }
     }, [searchParams]);
 
-    const handleVerifyCode = async (code: string) => {
-        try {
-            const emailAddress = await verifyPasswordResetCode(auth, code);
-            setEmail(emailAddress);
-            setStatus('valid');
-        } catch (error: any) {
-            console.error('Code verification error:', error);
-            setStatus('error');
-            setMessage(getErrorText(error.code));
-        }
-    };
-
     const handleResetSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!oobCode) return;
+        if (!token) return;
 
         if (newPassword !== confirmPassword) {
-            setMessage("Passwords do not match.");
+            setFormError('Passwords do not match.');
             return;
         }
 
-        if (newPassword.length < 6) {
-            setMessage("Password must be at least 6 characters.");
+        if (newPassword.length < 8) {
+            setFormError('Password must be at least 8 characters.');
             return;
         }
 
         setIsSubmitting(true);
         try {
-            await confirmPasswordReset(auth, oobCode, newPassword);
+            setFormError(null);
+            await api.auth.resetPassword(token, newPassword);
             setStatus('success');
-            setMessage('Your password has been reset successfully. You can now login with your new password.');
+            setMessage('Your password has been reset successfully. You can now log in with your new password.');
         } catch (error: any) {
             console.error('Reset error:', error);
-            // If the code is invalid now (maybe expired during form fill), show error
             setStatus('error');
-            setMessage(getErrorText(error.code));
+            setMessage(error.message || 'An error occurred. Please try again.');
         } finally {
             setIsSubmitting(false);
-        }
-    };
-
-    const getErrorText = (errorCode: string) => {
-        switch (errorCode) {
-            case 'auth/expired-action-code':
-                return 'This reset link has expired. Please request a new one.';
-            case 'auth/invalid-action-code':
-                return 'This reset link is invalid. It may have already been used.';
-            case 'auth/user-disabled':
-                return 'This user account has been disabled.';
-            case 'auth/user-not-found':
-                return 'User not found.';
-            case 'auth/weak-password':
-                return 'Password is too weak. Please choose a stronger password.';
-            default:
-                return 'An error occurred. Please try again.';
         }
     };
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
             <div className="w-full max-w-md bg-white rounded-[2rem] shadow-2xl p-8 border border-gray-100 relative overflow-hidden animate-fade-in-up">
-
-                {/* Decorative Background Blob */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand-blue/5 rounded-bl-[4rem] -z-0 pointer-events-none"></div>
 
                 {status === 'verifying' && (
@@ -112,16 +78,10 @@ export const ResetPassword: React.FC = () => {
                                 <KeyRound size={32} />
                             </div>
                             <h2 className="text-2xl font-bold text-gray-900">Reset Password</h2>
-                            <p className="text-sm text-gray-500 mt-2">for <span className="font-semibold text-gray-700">{email}</span></p>
+                            <p className="text-sm text-gray-500 mt-2">Enter a new password below.</p>
                         </div>
 
                         <form onSubmit={handleResetSubmit} className="space-y-6">
-                            {message && status !== 'valid' && (
-                                <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2">
-                                    <XCircle size={16} /> {message}
-                                </div>
-                            )}
-
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-1.5 ml-1">New Password</label>
@@ -130,7 +90,7 @@ export const ResetPassword: React.FC = () => {
                                             <Lock size={18} />
                                         </div>
                                         <input
-                                            type={showPassword ? "text" : "password"}
+                                            type={showPassword ? 'text' : 'password'}
                                             required
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
@@ -154,16 +114,22 @@ export const ResetPassword: React.FC = () => {
                                             <Lock size={18} />
                                         </div>
                                         <input
-                                            type={showPassword ? "text" : "password"}
+                                            type={showPassword ? 'text' : 'password'}
                                             required
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
-                                            className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all font-medium"
+                                            className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all font-medium"
                                             placeholder="••••••••"
                                         />
                                     </div>
                                 </div>
                             </div>
+
+                            {formError && (
+                                <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2">
+                                    <XCircle size={16} /> {formError}
+                                </div>
+                            )}
 
                             <button
                                 type="submit"
@@ -216,10 +182,8 @@ export const ResetPassword: React.FC = () => {
                         </Link>
                     </div>
                 )}
-
             </div>
 
-            {/* Footer */}
             <div className="mt-8 text-gray-400 text-sm font-medium">
                 © {new Date().getFullYear()} Medico Hub
             </div>

@@ -13,8 +13,8 @@ export const EmailVerificationBanner: React.FC = () => {
         return sessionStorage.getItem(`verification_email_sent_${user.uid}`) === 'true';
     });
 
-    // Check if user has 'password' provider (email/password registration)
-    const isEmailUser = user?.providerData.some(p => p.providerId === 'password');
+    // Show the banner only for email/password accounts that are still unverified.
+    const isEmailUser = user?.authProvider === 'email';
 
     // If no user, already verified, dismissed, or not an email user, don't show
     if (!user || user.emailVerified || dismissed || !isEmailUser) return null;

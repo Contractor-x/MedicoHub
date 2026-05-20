@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { User } from '../../models/User';
 import { verifyAuth, verifyAdmin } from '../../middleware/auth.middleware';
-import { auth, admin } from '../../config/firebase';
 import { EmailService } from '../../services/email.service';
 
 const router = Router();
@@ -83,10 +82,6 @@ router.patch('/:uid/ban', verifyAuth, verifyAdmin, async (req: Request, res: Res
     const { ban } = req.body;
 
     try {
-        // 1. Disable in Firebase Auth
-        await auth.updateUser(uid, { disabled: ban });
-
-        // 2. Update status in MongoDB
         const user = await User.findOneAndUpdate(
             { uid },
             { $set: { status: ban ? 'suspended' : 'active' } },
@@ -136,13 +131,29 @@ router.patch('/:uid/subscription', verifyAuth, verifyAdmin, async (req: Request,
     const { isPro } = req.body;
 
     try {
-        const user = await User.findOneAndUpdate({ uid }, { isSubscribed: isPro }, { new: true });
+        const updatePayload: Record<string, any> = {
+            isSubscribed: !!isPro
+        };
+
+        if (isPro) {
+            updatePayload.subscriptionDate = new Date();
+            updatePayload.subscriptionPlan = 'admin_override';
+        } else {
+            updatePayload.subscriptionDate = null;
+            updatePayload.subscriptionPlan = null;
+        }
+
+        const user = await User.findOneAndUpdate({ uid }, updatePayload, { new: true });
 
         if (user) {
             EmailService.sendSubscriptionStatusEmail(user, isPro).catch(console.error);
         }
 
-        res.json({ success: true, message: `User subscription ${isPro ? 'activated' : 'deactivated'}` });
+        res.json({
+            success: true,
+            message: `User subscription ${isPro ? 'activated' : 'deactivated'}`,
+            user
+        });
     } catch (error) {
         console.error("Error updating subscription:", error);
         res.status(500).json({ error: "Failed to update subscription" });
@@ -162,15 +173,6 @@ router.delete('/:uid', verifyAuth, async (req: Request, res: Response) => {
     }
 
     try {
-        // 1. Delete from Firebase Auth (Optional: Usually handled by client before calling this, 
-        // but for admin deletion it's necessary here)
-        try {
-            await auth.deleteUser(uid);
-        } catch (e: any) {
-            console.warn("Auth deletion failed (might be already deleted):", e.message);
-        }
-
-        // 2. Delete from MongoDB
         await User.findOneAndDelete({ uid });
 
         res.json({ success: true, message: "User permanently deleted" });
@@ -298,19 +300,6 @@ router.patch('/:uid/profile', verifyAuth, async (req: Request, res: Response) =>
         });
 
         const oldUser = await User.findOne({ uid });
-
-        // If photoURL or name is updated, also update Firebase Auth Profile (Sync for Auth only)
-        if (updates.photoURL || updates.name) {
-            try {
-                await auth.updateUser(uid, {
-                    photoURL: updates.photoURL || undefined,
-                    displayName: updates.name || undefined
-                });
-            } catch (authError: any) {
-                console.warn(`[Warning] Failed to sync Firebase profile for ${uid}:`, authError.message);
-                // Continue with MongoDB update even if Firebase sync fails
-            }
-        }
 
         // Fix for Admin Updates:
         // If Admin is updating another user, DO NOT upsert. Upserting would use req.user (Admin) email

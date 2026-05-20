@@ -1,5 +1,3 @@
-// import { db } from '../../config/firebase'; // Removed Firestore
-// import { FieldValue } from 'firebase-admin/firestore'; // Removed Firestore
 import { ActivityLog } from '../../models/ActivityLog';
 import { GlobalStats } from '../../models/GlobalStats';
 // import { User } from '../../models/User';
