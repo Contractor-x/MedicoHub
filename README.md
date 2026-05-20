@@ -30,7 +30,7 @@ The backend owns:
 
 The frontends just talk to the backend over HTTP and use cookies for sessions.
 
-## Requirements
+## Requirements:
 
 - Node.js 20+
 - pnpm 9+
