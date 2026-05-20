@@ -6,7 +6,7 @@
 [![Vite](https://img.shields.io/badge/vite-7-646cff?style=flat-square)](https://vitejs.dev)
 [![Express](https://img.shields.io/badge/express-4-000000?style=flat-square)](https://expressjs.com)
 
-Three apps in one repo: user frontend, admin frontend, and backend API.
+Three apps in one repo: user frontend, admin frontend, and backend API
 
 </div>
 
