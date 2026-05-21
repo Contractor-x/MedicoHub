@@ -61,12 +61,29 @@ export const api = {
                 body
             });
 
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.error || err.message || 'Failed to sign in');
+            const payload = await res.json().catch(() => ({} as any));
+            if (!res.ok || payload?.error) {
+                const raw = String(payload?.error || payload?.message || 'Failed to sign in');
+                if (raw.toLowerCase().includes('credential')) {
+                    throw new Error('Invalid email or password.');
+                }
+                if (raw.toLowerCase().includes('csrf')) {
+                    throw new Error('Sign-in session expired. Please refresh and try again.');
+                }
+                throw new Error(raw);
             }
 
-            return res.json().catch(() => ({}));
+            // Auth.js can return a redirect URL with an encoded error query even on 200.
+            if (typeof payload?.url === 'string') {
+                const lowered = payload.url.toLowerCase();
+                if (lowered.includes('error=')) {
+                    if (lowered.includes('credentials')) throw new Error('Invalid email or password.');
+                    if (lowered.includes('csrf')) throw new Error('Sign-in session expired. Please refresh and try again.');
+                    throw new Error('Login failed. Please try again.');
+                }
+            }
+
+            return payload;
         },
         signOut: async () => {
             const csrfRes = await fetch(`${ROOT_URL}/auth/csrf`);
@@ -89,30 +106,26 @@ export const api = {
             const csrfRes = await fetch(`${ROOT_URL}/auth/csrf`);
             const csrfJson = await csrfRes.json().catch(() => ({}));
             const csrfToken = csrfJson.csrfToken || '';
+            if (!csrfToken) throw new Error('Unable to start Google sign-in. Missing CSRF token.');
 
-            const res = await fetch(`${ROOT_URL}/auth/signin/google`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Auth-Return-Redirect': 'true'
-                },
-                body: new URLSearchParams({
-                    csrfToken,
-                    callbackUrl
-                })
-            });
+            // Use a real browser form post for Auth.js OAuth start to avoid fetch redirect/CORS quirks.
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `${ROOT_URL}/auth/signin/google`;
+            form.style.display = 'none';
 
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({ message: 'Google sign-in failed' }));
-                throw new Error(err.message || 'Failed to sign in with Google');
-            }
+            const csrfInput = document.createElement('input');
+            csrfInput.name = 'csrfToken';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
 
-            const data = await res.json();
-            if (data.url) {
-                window.location.href = data.url;
-            } else {
-                throw new Error('No redirect URL received from server');
-            }
+            const callbackInput = document.createElement('input');
+            callbackInput.name = 'callbackUrl';
+            callbackInput.value = callbackUrl;
+            form.appendChild(callbackInput);
+
+            document.body.appendChild(form);
+            form.submit();
         },
         sendVerification: async () => {
             const res = await fetch(`${V1_URL}/auth/send-verification`, {
