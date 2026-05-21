@@ -393,7 +393,9 @@ export const EmailService = {
 
     // --- AUTH (Verify/Reset) ---
     sendVerificationEmail: async (email: string, link: string) => {
-        if (!resend || !process.env.RESEND_API_KEY) return;
+        if (!resend || !process.env.RESEND_API_KEY) {
+            throw new Error('Resend is not configured. Missing RESEND_API_KEY.');
+        }
         try {
             const content = `
                 <h1 style="${STYLES.h1}">Verify Your Email</h1>
@@ -403,11 +405,16 @@ export const EmailService = {
                 </div>
             `;
             await resend.emails.send({ from: FROM_EMAIL, to: email, subject: 'Verify your email', html: wrapEmail('Verify', content) });
-        } catch (e) { console.error(e); }
+        } catch (e: any) {
+            console.error('sendVerificationEmail failed:', e);
+            throw new Error(e?.message || 'Failed to send verification email');
+        }
     },
 
     sendPasswordResetEmail: async (email: string, link: string) => {
-        if (!resend || !process.env.RESEND_API_KEY) return;
+        if (!resend || !process.env.RESEND_API_KEY) {
+            throw new Error('Resend is not configured. Missing RESEND_API_KEY.');
+        }
         try {
             const content = `
                 <h1 style="${STYLES.h1}">Reset Password</h1>
@@ -417,7 +424,10 @@ export const EmailService = {
                 </div>
             `;
             await resend.emails.send({ from: FROM_EMAIL, to: email, subject: 'Reset Password', html: wrapEmail('Reset', content) });
-        } catch (e) { console.error(e); }
+        } catch (e: any) {
+            console.error('sendPasswordResetEmail failed:', e);
+            throw new Error(e?.message || 'Failed to send password reset email');
+        }
     },
 
     // --- ADMIN ALERT ---
