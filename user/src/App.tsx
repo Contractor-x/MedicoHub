@@ -508,6 +508,13 @@ const AppContent: React.FC = () => {
         <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route
+          path={AppRoute.SUBSCRIPTION_SETUP}
+          element={
+            user ? <Navigate to={AppRoute.ONBOARDING} /> : <Navigate to={AppRoute.SIGNUP} />
+          }
+        />
+
+        <Route
           path={AppRoute.ONBOARDING}
           element={
             user ? <Onboarding updateUser={handleUpdateUser} /> : <Navigate to={AppRoute.SIGNUP} />
