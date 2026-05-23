@@ -53,7 +53,7 @@ jobs:
 
       - name: Write User Env (Production)
         run: |
-          cat > user/.env.production <<'EOF'
+          cat > user/.env.production <<EOF
           VITE_API_URL=${VITE_API_URL}
           VITE_API_BASE_URL=${VITE_API_BASE_URL}
           VITE_CLERK_PUBLISHABLE_KEY=${VITE_CLERK_PUBLISHABLE_KEY}
