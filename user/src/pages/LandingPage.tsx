@@ -63,7 +63,7 @@ export const LandingPage: React.FC = () => {
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                             <Link
-                                to={AppRoute.MCAMP}
+                                to={AppRoute.SIGNUP}
                                 className="bg-brand-blue text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-600 transition-all shadow-xl shadow-brand-blue/30 hover:-translate-y-1 flex items-center justify-center gap-2"
                             >
                                 Apply for MCAMP
@@ -170,7 +170,7 @@ export const LandingPage: React.FC = () => {
                                     MCAMP is an intensive mentorship and accountability program designed to help you master Anatomy, Physiology, and Biochemistry in just 3 months. Limited to 20 slots.
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                                    <Link to={AppRoute.MCAMP} className="bg-brand-yellow text-brand-dark px-8 py-4 rounded-full font-bold text-lg hover:bg-white transition-all shadow-xl shadow-brand-yellow/20 flex items-center justify-center gap-2">
+                                    <Link to={AppRoute.SIGNUP} className="bg-brand-yellow text-brand-dark px-8 py-4 rounded-full font-bold text-lg hover:bg-white transition-all shadow-xl shadow-brand-yellow/20 flex items-center justify-center gap-2">
                                         Join the Next Cohort <ArrowRight size={20} />
                                     </Link>
                                 </div>
@@ -290,7 +290,7 @@ export const LandingPage: React.FC = () => {
                     <div className="relative z-10 max-w-2xl mx-auto">
                         <h2 className="text-3xl lg:text-4xl font-extrabold text-brand-dark mb-4">Ready to excel in medicine?</h2>
                         <p className="text-gray-500 text-lg mb-8">Join the top 1% of medical students who understand the art of studying smart.</p>
-                        <Link to={AppRoute.ONBOARDING} className="inline-block bg-brand-blue text-white px-10 py-4 rounded-full font-bold text-lg shadow-xl shadow-brand-blue/30 hover:-translate-y-1 transition-all">
+                        <Link to={AppRoute.SIGNUP} className="inline-block bg-brand-blue text-white px-10 py-4 rounded-full font-bold text-lg shadow-xl shadow-brand-blue/30 hover:-translate-y-1 transition-all">
                             Start Your Journey
                         </Link>
                     </div>
