@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useClerk, useUser } from '@clerk/clerk-react';
 import { api } from '../services/api';
 
 export interface AuthUser {
@@ -11,7 +12,7 @@ export interface AuthUser {
     photoURL?: string;
     role?: 'student' | 'admin';
     emailVerified?: boolean;
-    authProvider?: 'email' | 'google';
+    authProvider?: 'email' | 'google' | 'clerk';
 }
 
 interface AuthContextType {
@@ -49,49 +50,70 @@ const normalizeUser = (sessionUser: any): AuthUser | null => {
         photoURL: sessionUser.photoURL || sessionUser.image,
         role: sessionUser.role,
         emailVerified: !!sessionUser.emailVerified,
-        authProvider: sessionUser.authProvider || 'email'
+        authProvider: sessionUser.authProvider || 'clerk'
     };
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const clerk = useClerk();
+    const { user: clerkUser, isLoaded } = useUser();
     const [user, setUser] = useState<AuthUser | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!isLoaded);
 
-    const loadSession = async () => {
-        setLoading(true);
-        try {
-            const session = await api.auth.getSession();
-            setUser(normalizeUser(session?.user));
-        } catch (error) {
-            console.error('Failed to load session:', error);
-            setUser(null);
-        } finally {
-            setLoading(false);
-        }
+    const mapClerkUser = (u: typeof clerkUser): AuthUser | null => {
+        if (!u) return null;
+        const email = u.primaryEmailAddress?.emailAddress || u.emailAddresses?.[0]?.emailAddress;
+        const fullName = `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || email || 'Student';
+        return normalizeUser({
+            id: u.id,
+            uid: u.id,
+            email,
+            name: fullName,
+            displayName: fullName,
+            image: u.imageUrl,
+            photoURL: u.imageUrl,
+            role: (u.publicMetadata?.role as 'student' | 'admin' | undefined) || 'student',
+            emailVerified: !!u.primaryEmailAddress?.verification?.status && u.primaryEmailAddress?.verification?.status === 'verified',
+            authProvider: 'clerk'
+        });
     };
 
     useEffect(() => {
-        loadSession();
-    }, []);
+        if (!isLoaded) {
+            setLoading(true);
+            return;
+        }
+        setUser(mapClerkUser(clerkUser));
+        setLoading(false);
+    }, [isLoaded, clerkUser]);
 
     const login = async (email: string, password: string) => {
-        await api.auth.login(email, password);
-        await loadSession();
+        await clerk.openSignIn({
+            identifier: email,
+            afterSignInUrl: `${window.location.origin}${window.location.pathname}#/dashboard`,
+            afterSignUpUrl: `${window.location.origin}${window.location.pathname}#/dashboard`
+        } as any);
     };
 
     const signup = async (name: string, email: string, password: string) => {
-        await api.auth.register(name, email, password);
-        await login(email, password);
+        await clerk.openSignUp({
+            unsafeMetadata: { fullName: name },
+            emailAddress: email,
+            afterSignInUrl: `${window.location.origin}${window.location.pathname}#/dashboard`,
+            afterSignUpUrl: `${window.location.origin}${window.location.pathname}#/dashboard`
+        } as any);
     };
 
     const logout = async () => {
-        await api.auth.signOut();
+        await clerk.signOut({ redirectUrl: `${window.location.origin}${window.location.pathname}#/login` });
         setUser(null);
     };
 
     const googleSignIn = async () => {
-        const callbackUrl = `${window.location.origin}/#/dashboard`;
-        await api.auth.signInWithGoogle(callbackUrl);
+        await clerk.openSignIn({
+            afterSignInUrl: `${window.location.origin}${window.location.pathname}#/dashboard`,
+            afterSignUpUrl: `${window.location.origin}${window.location.pathname}#/dashboard`
+        } as any);
     };
 
     const deleteAccount = async () => {
@@ -109,7 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const refreshUser = async () => {
-        await loadSession();
+        setUser(mapClerkUser(clerkUser));
     };
 
     return (
