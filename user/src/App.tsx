@@ -493,7 +493,7 @@ const AppContent: React.FC = () => {
           element={
             user ? (
               !isOnboarded(user) ? <Navigate to={AppRoute.ONBOARDING} /> : <Navigate to={AppRoute.PROFILE} />
-            ) : <Signup onSignup={noop} />
+            ) : <Navigate to={AppRoute.LOGIN} replace />
           }
         />
 
